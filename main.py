@@ -2,8 +2,15 @@ import cv2
 import pickle
 import cvzone
 import numpy as np
+import json
+import time
+from datetime import datetime
 
 cap = cv2.VideoCapture('assets/carPark.mp4')
+
+# Controle de tempo para salvar o JSON periodicamente (sem sobrecarregar o disco)
+last_save_time = 0
+SAVE_INTERVAL = 0.5  # salva a cada meio segundo
 
 # Carrega o arquivo de polígonos (com fallback para converter o arquivo antigo de retângulos)
 try:
@@ -65,6 +72,7 @@ def checkParkingSpace(imgPro):
         cvzone.putTextRect(img, f"{int(ratio)}%", (x, y + h - 5), scale=0.8, thickness=1, offset=2, colorR=color)
 
     cvzone.putTextRect(img, f"Vagas disponiveis: {spaceCounter}/{len(posList)}", (10, 50), scale=2, thickness=3, offset=10, colorR=(0, 0, 0))
+    return spaceCounter, len(posList)
 
 
 
@@ -86,7 +94,43 @@ while True:
     imgDilate = cv2.dilate(imgMedian, kernel, iterations=1)
 
 
-    checkParkingSpace(imgDilate)
+    free_spaces, total_spaces = checkParkingSpace(imgDilate)
+
+    # Salva periodicamente no arquivo JSON para alimentar o site/API
+    current_time = time.time()
+    if current_time - last_save_time > SAVE_INTERVAL:
+        occupied_spaces = total_spaces - free_spaces
+
+        parking_data = {
+            "updated_at": datetime.now().strftime("%H:%M:%S"),
+            "total_geral": total_spaces + 20,
+            "livres_geral": free_spaces + 12,
+            "ocupadas_geral": occupied_spaces + 8,
+            "andares": [
+                {
+                    "andar": 1,
+                    "nome": "1º Andar (Câmera ao Vivo)",
+                    "total": total_spaces,
+                    "livres": free_spaces,
+                    "ocupadas": occupied_spaces
+                },
+                {
+                    "andar": 2,
+                    "nome": "2º Andar",
+                    "total": 20,
+                    "livres": 12,
+                    "ocupadas": 8
+                }
+            ]
+        }
+
+        try:
+            with open('parking_data.json', 'w', encoding='utf-8') as f:
+                json.dump(parking_data, f, indent=4, ensure_ascii=False)
+        except Exception:
+            pass
+
+        last_save_time = current_time
           
 
     cv2.imshow("Image", img)
