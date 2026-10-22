@@ -31,11 +31,22 @@ if len(posList) == 0:
     except:
         posList = []
 
+# Configuração do filtro de estabilização temporal (anti-flicker)
+PERSISTENCE_THRESHOLD = 10  # frames consecutivos necessários para confirmar mudança de estado
+spot_status = [True] * len(posList)        # True = Livre, False = Ocupada
+transition_counter = [0] * len(posList)   # Conta quantos frames o novo estado está se mantendo
+
 
 def checkParkingSpace(imgPro):
+    global spot_status, transition_counter
     spaceCounter = 0
 
-    for pts in posList:
+    # Garante que as listas de estado acompanhem o tamanho de posList
+    if len(spot_status) != len(posList):
+        spot_status = [True] * len(posList)
+        transition_counter = [0] * len(posList)
+
+    for i, pts in enumerate(posList):
         pts_arr = np.array(pts, dtype=np.int32)
 
         # Bounding box ao redor do polígono para recortar a ROI
@@ -58,12 +69,26 @@ def checkParkingSpace(imgPro):
         count = cv2.countNonZero(imgMasked)
         ratio = (count / area_total) * 100
 
-        # Se menos de 20% da vaga estiver alterada/branca, consideramos livre
-        if ratio < 20.0:
+        # Leitura instantânea deste frame (Livre se preenchimento < 20%)
+        current_frame_free = (ratio < 20.0)
+
+        # Lógica de estabilização temporal (filtro anti-flicker):
+        if current_frame_free != spot_status[i]:
+            transition_counter[i] += 1
+            # Se a nova condição persistir por frames suficientes, confirma a mudança
+            if transition_counter[i] >= PERSISTENCE_THRESHOLD:
+                spot_status[i] = current_frame_free
+                transition_counter[i] = 0
+        else:
+            # Se voltou ao estado confirmado, reseta o contador de transição
+            transition_counter[i] = 0
+
+        # Define cores e contadores com base no status ESTABILIZADO e CONFIRMADO
+        if spot_status[i]:  # Vaga confirmada Livre
             color = (0, 255, 0)
             thickness = 3
             spaceCounter += 1
-        else:
+        else:  # Vaga confirmada Ocupada
             color = (0, 0, 255)
             thickness = 2
 
@@ -103,23 +128,25 @@ while True:
 
         parking_data = {
             "updated_at": datetime.now().strftime("%H:%M:%S"),
-            "total_geral": total_spaces + 20,
-            "livres_geral": free_spaces + 12,
-            "ocupadas_geral": occupied_spaces + 8,
+            "total_geral": total_spaces,
+            "livres_geral": free_spaces,
+            "ocupadas_geral": occupied_spaces,
             "andares": [
                 {
                     "andar": 1,
                     "nome": "1º Andar (Câmera ao Vivo)",
                     "total": total_spaces,
                     "livres": free_spaces,
-                    "ocupadas": occupied_spaces
+                    "ocupadas": occupied_spaces,
+                    "is_live": True
                 },
                 {
                     "andar": 2,
-                    "nome": "2º Andar",
+                    "nome": "2º Andar (Exemplo / Futuro)",
                     "total": 20,
                     "livres": 12,
-                    "ocupadas": 8
+                    "ocupadas": 8,
+                    "is_live": False
                 }
             ]
         }
