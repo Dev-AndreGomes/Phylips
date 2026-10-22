@@ -3,109 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Status do Estacionamento</title>
+    <title>Painel do Estacionamento - IA ao Vivo</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 30px;
-            color: #333;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 30px 20px;
+            min-height: 100vh;
         }
         .container {
-            max-width: 800px;
+            max-width: 850px;
             margin: 0 auto;
         }
-        h1 {
-            margin-bottom: 5px;
-        }
-        .status-header {
-            font-size: 14px;
-            color: #666;
+        
+        /* Cabeçalho */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        .resumo-cards {
+        h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #22c55e;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        /* Subtítulo */
+        .sub-header {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 20px;
+        }
+
+        /* Cards Principais */
+        .resumo-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         .card {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            background: #1e293b;
+            padding: 22px 20px;
+            border-radius: 12px;
+            border: 1px solid #334155;
             text-align: center;
+            transition: transform 0.2s ease;
         }
-        .card .numero {
-            font-size: 32px;
-            font-weight: bold;
-            margin-top: 10px;
+        .card:hover {
+            transform: translateY(-2px);
         }
-        .livres { color: #28a745; }
-        .ocupadas { color: #dc3545; }
-        .total { color: #007bff; }
-        
-        .secao-andares {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        .card-label {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+        .card-valor {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .livres { color: #22c55e; }
+        .ocupadas { color: #ef4444; }
+        .total { color: #38bdf8; }
+
+        /* Barra de Lotação */
+        .lotacao-container {
+            background: #1e293b;
+            padding: 18px 20px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            margin-bottom: 25px;
+        }
+        .lotacao-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+        }
+        .progress-bar-bg {
+            background: #334155;
+            height: 12px;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #22c55e;
+            width: 0%;
+            transition: width 0.4s ease, background-color 0.4s ease;
+        }
+
+        /* Seção de Andares */
+        .andares-secao {
+            background: #1e293b;
+            padding: 22px 20px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+        .andares-titulo {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         .andar-card {
-            border: 1px solid #e1e4e8;
-            border-radius: 6px;
-            padding: 15px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 16px 20px;
             margin-top: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
         }
-        .andar-nome {
-            font-size: 18px;
-            font-weight: bold;
+        .andar-info-nome {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            background: #eafaf1;
-            color: #28a745;
+        .tag-status {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .tag-live {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .tag-placeholder {
+            background: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        .andar-info-sub {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .andar-vagas-badge {
+            font-size: 15px;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .andar-vagas-badge.lotado {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        @media (max-width: 600px) {
+            .resumo-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Painel do Estacionamento</h1>
-        <div class="status-header">
-            Última atualização: <span id="updated-at">--:--:--</span> (Atualiza a cada 2 segundos)
-        </div>
-
-        <!-- Cards com o Resumo Geral -->
-        <div class="resumo-cards">
-            <div class="card">
-                <div>Total de Vagas</div>
-                <div id="total-geral" class="numero total">0</div>
-            </div>
-            <div class="card">
-                <div>Vagas Livres</div>
-                <div id="livres-geral" class="numero livres">0</div>
-            </div>
-            <div class="card">
-                <div>Vagas Ocupadas</div>
-                <div id="ocupadas-geral" class="numero ocupadas">0</div>
+        
+        <!-- Cabeçalho com Status ao Vivo -->
+        <div class="header">
+            <h1>Monitoramento de Estacionamento</h1>
+            <div class="live-indicator">
+                <span class="dot"></span>
+                <span>IA Ao Vivo Conectada</span>
             </div>
         </div>
 
-        <!-- Lista de Andares -->
-        <div class="secao-andares">
-            <h2>Disponibilidade por Andar</h2>
+        <div class="sub-header">
+            Câmera do Estacionamento (Visão Superior) • Última leitura: <strong id="updated-at" style="color: #f8fafc;">--:--:--</strong>
+        </div>
+
+        <!-- Cards com as métricas reais da Câmera -->
+        <div class="resumo-grid">
+            <div class="card">
+                <div class="card-label">Total de Vagas</div>
+                <div id="total-geral" class="card-valor total">--</div>
+            </div>
+            <div class="card">
+                <div class="card-label">Vagas Disponíveis</div>
+                <div id="livres-geral" class="card-valor livres">--</div>
+            </div>
+            <div class="card">
+                <div class="card-label">Vagas Ocupadas</div>
+                <div id="ocupadas-geral" class="card-valor ocupadas">--</div>
+            </div>
+        </div>
+
+        <!-- Barra de Lotação Geral -->
+        <div class="lotacao-container">
+            <div class="lotacao-header">
+                <span>Taxa de Ocupação da Câmera</span>
+                <span id="taxa-ocupacao">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div id="barra-progresso" class="progress-bar-fill"></div>
+            </div>
+        </div>
+
+        <!-- Seção de Andares / Câmeras -->
+        <div class="andares-secao">
+            <div class="andares-titulo">
+                <span>Disponibilidade por Andar / Setor</span>
+                <span style="font-size: 12px; color: #64748b; font-weight: normal;">Atualização a cada 2s</span>
+            </div>
+
             <div id="lista-andares">
-                <p>Carregando informações...</p>
+                <p style="color: #64748b; font-size: 14px;">Aguardando dados da IA...</p>
             </div>
         </div>
+
     </div>
 
     <script>
@@ -116,36 +272,71 @@
 
                 const data = await response.json();
 
-                // Atualiza os contadores gerais
+                // 1. Atualiza os dados reais vindos da visão computacional
                 document.getElementById('updated-at').textContent = data.updated_at || '--:--:--';
-                document.getElementById('total-geral').textContent = data.total_geral || 0;
-                document.getElementById('livres-geral').textContent = data.livres_geral || 0;
-                document.getElementById('ocupadas-geral').textContent = data.ocupadas_geral || 0;
+                
+                const total = data.total_geral || 0;
+                const livres = data.livres_geral || 0;
+                const ocupadas = data.ocupadas_geral || 0;
 
-                // Atualiza a lista por andar
+                document.getElementById('total-geral').textContent = total;
+                document.getElementById('livres-geral').textContent = livres;
+                document.getElementById('ocupadas-geral').textContent = ocupadas;
+
+                // 2. Calcula e atualiza a barra de lotação
+                const percentualOcupado = total > 0 ? Math.round((ocupadas / total) * 100) : 0;
+                document.getElementById('taxa-ocupacao').textContent = percentualOcupado + '% ocupado';
+                
+                const barra = document.getElementById('barra-progresso');
+                barra.style.width = percentualOcupado + '%';
+
+                // Cor dinâmica da barra: verde (< 70%), amarelo (70-89%), vermelho (>= 90%)
+                if (percentualOcupado >= 90) {
+                    barra.style.backgroundColor = '#ef4444';
+                } else if (percentualOcupado >= 70) {
+                    barra.style.backgroundColor = '#f59e0b';
+                } else {
+                    barra.style.backgroundColor = '#22c55e';
+                }
+
+                // 3. Renderiza os andares (diferenciando o ao vivo dos placeholders)
                 const listaAndares = document.getElementById('lista-andares');
                 if (data.andares && data.andares.length > 0) {
-                    listaAndares.innerHTML = data.andares.map(andar => `
-                        <div class="andar-card">
-                            <div>
-                                <div class="andar-nome">${andar.nome}</div>
-                                <small style="color: #666;">Total: ${andar.total} vagas | Ocupadas: ${andar.ocupadas}</small>
+                    listaAndares.innerHTML = data.andares.map(andar => {
+                        const isLive = andar.is_live;
+                        const tagHtml = isLive 
+                            ? `<span class="tag-status tag-live">● Ao Vivo</span>` 
+                            : `<span class="tag-status tag-placeholder">Placeholder / Exemplo</span>`;
+                        
+                        const isLotado = andar.livres === 0;
+
+                        return `
+                            <div class="andar-card">
+                                <div>
+                                    <div class="andar-info-nome">
+                                        <span>${andar.nome}</span>
+                                        ${tagHtml}
+                                    </div>
+                                    <div class="andar-info-sub">
+                                        Total: ${andar.total} vagas | Ocupadas: ${andar.ocupadas}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="andar-vagas-badge ${isLotado ? 'lotado' : ''}">
+                                        ${andar.livres} ${andar.livres === 1 ? 'vaga livre' : 'vagas livres'}
+                                    </span>
+                                </div>
                             </div>
-                            <div>
-                                <span class="badge">${andar.livres} vagas livres</span>
-                            </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 }
             } catch (err) {
-                console.error('Erro ao buscar dados do estacionamento:', err);
+                console.error('Erro ao conectar na API:', err);
             }
         }
 
-        // Executa imediatamente ao abrir a página
+        // Executa imediatamente ao abrir e depois a cada 2 segundos
         atualizarDados();
-
-        // Consulta a API a cada 2 segundos para atualizar em tempo real
         setInterval(atualizarDados, 2000);
     </script>
 </body>

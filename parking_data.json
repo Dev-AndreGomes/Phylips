@@ -1,22 +1,24 @@
 {
-    "updated_at": "23:12:37",
-    "total_geral": 22,
-    "livres_geral": 12,
-    "ocupadas_geral": 10,
+    "updated_at": "23:43:21",
+    "total_geral": 16,
+    "livres_geral": 2,
+    "ocupadas_geral": 14,
     "andares": [
         {
             "andar": 1,
             "nome": "1º Andar (Câmera ao Vivo)",
-            "total": 2,
-            "livres": 0,
-            "ocupadas": 2
+            "total": 16,
+            "livres": 2,
+            "ocupadas": 14,
+            "is_live": true
         },
         {
             "andar": 2,
-            "nome": "2º Andar",
+            "nome": "2º Andar (Exemplo / Futuro)",
             "total": 20,
             "livres": 12,
-            "ocupadas": 8
+            "ocupadas": 8,
+            "is_live": false
         }
     ]
 }
